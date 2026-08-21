@@ -1,0 +1,264 @@
+<!doctype html>
+<!--
+  esaKITs — A-2 Side-by-Side FlashCards
+  Based on esaKITs Japanese Flashcards v1.19
+  Copyright 2026 Tetsuya Esaki / esaKITs — Enhanced Smart AI Kits
+
+  Licensed under the Apache License, Version 2.0.
+  This file includes substantial modifications for A-2.
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>左右型 FlashCards v1.0 / Side-by-Side FlashCards — esaKITs A-2</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<button id="fullscreenExit" class="fullscreen-exit">全画面を終了</button>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">左右型 FlashCards / Side-by-Side FlashCards <span class="version-badge">A-2 v1.0</span></div>
+    <div class="mode-switch">
+      <button id="teacherModeBtn" class="active">教師モード</button>
+      <button id="learnerModeBtn">Learner Mode</button>
+    </div>
+  </div>
+
+  
+  <section id="teacherControls" class="panel">
+    <div class="controls">
+      <div class="field"><label>問題</label><select id="questionTypeSelect"></select></div>
+      <div class="field"><label>答え</label><select id="answerTypeSelect"></select></div>
+      <div class="field"><label>表記</label><select id="scriptMode"><option value="standard">標準</option></select></div>
+      <div class="field"><label>出題順</label><select id="orderModeSelect"><option value="ordered">登録順</option><option value="shuffle">シャッフル</option></select></div>
+    </div>
+    <div class="group-row" style="margin-top:12px">
+      <button id="swapBtn" type="button">⇄ 問題と答えを入れ替える</button>
+      <span id="swapState" class="small">問題：ひらがな ／ 答え：ローマ字</span>
+    </div>
+    <input id="questionPosition" type="hidden" value="left">
+    <input id="cardCount" type="hidden" value="0">
+    <span id="cardCountText" class="hidden">0枚</span>
+    <div class="settings-menu-box">
+      <details id="settingsDetails" class="settings-details menu-details">
+      <summary>
+        <div class="settings-summary-row">
+          <span class="settings-summary-title menu-title">表示設定</span>
+          <span class="settings-summary-actions">
+            <button type="button" id="saveDisplayBtn">表示設定を保存</button>
+            <button type="button" id="resetDisplayBtn">初期設定に戻す</button>
+          </span>
+        </div>
+      </summary>
+      <div class="display-settings-layout">
+        <div class="display-setting-groups">
+          <div class="font-manager">
+            <div style="font-weight:800;margin-bottom:8px">共通フォント設定</div>
+            <div class="font-actions"><button id="loadPcFontsBtn" type="button">PCのフォントを読み込む</button></div>
+            <div class="small" style="margin-top:7px">読み込み後は、すぐ下の問題・答えのフォントメニューにPC内フォントが追加されます。</div>
+            <div class="field" style="margin-top:10px"><label>フォントを検索</label><input id="fontSearch" type="search" placeholder="例：UD、教科書、明朝"></div>
+            <div id="fontGrid" class="font-grid hidden"></div>
+            <div class="font-preview" id="fontPreview">あいうえお　漢字　ABC 123　中文　한국어　العربية<small>選択中フォントのプレビュー</small></div>
+            <div class="font-status" id="fontStatus">標準は「游ゴシック」です。PC内フォントを読み込むと、問題・答えの通常メニューに追加されます。選択中の書体は各メニュー直下の「見本」で確認できます。</div>
+          </div>
+          <div class="half-setting" id="questionSettingsPanel"><h4>問題</h4><div class="settings-grid">
+            <div class="field"><label>フォント</label><select id="qFont"><option value='"Yu Gothic","Meiryo",sans-serif' selected>游ゴシック</option><option value='"Meiryo",sans-serif'>メイリオ</option><option value='"HGP教科書体","Yu Gothic","Meiryo",sans-serif'>HGP教科書体</option><option value='"Yu Mincho",serif'>游明朝</option><option value='"MS PGothic","Meiryo",sans-serif'>ＭＳ Ｐゴシック</option><option value='"MS PMincho",serif'>ＭＳ Ｐ明朝</option></select><div class="inline-font-preview"><span class="preview-label">見本</span><span id="qInlineFontPreview" class="preview-text">あいうえお　漢字　ABC 123</span></div></div>
+            <div class="field"><label>文字の太さ</label><select id="qWeight"><option value="300">細字</option><option value="400" selected>標準</option><option value="500">中太</option><option value="700">太字</option></select></div>
+            <div class="field"><label>文字サイズ：<span id="qSizeValue">400 px</span></label><input id="qSize" type="range" min="32" max="500" step="2" value="400" aria-label="問題の文字サイズ（32〜500 px）"></div>
+            <div class="field"><label>文字色</label><input id="qText" type="color" value="#111827"></div><div class="field"><label>背景色</label><input id="qBg" type="color" value="#ffffff"></div>
+            <div class="field"><label>改行</label><select id="qWrapMode"><option value="wrap">自動（長いとき折り返す）</option><option value="shrink" selected>改行しない（はみ出すと自動縮小）</option><option value="manual">任意（\n の位置だけ）</option></select></div>
+          </div></div>
+          <div class="half-setting" id="answerSettingsPanel"><h4>答え</h4><div class="settings-grid">
+            <div class="field"><label>フォント</label><select id="aFont"><option value='"Yu Gothic","Meiryo",sans-serif' selected>游ゴシック</option><option value='"Meiryo",sans-serif'>メイリオ</option><option value='"HGP教科書体","Yu Gothic","Meiryo",sans-serif'>HGP教科書体</option><option value='"Yu Mincho",serif'>游明朝</option><option value='"MS PGothic","Meiryo",sans-serif'>ＭＳ Ｐゴシック</option><option value='"MS PMincho",serif'>ＭＳ Ｐ明朝</option></select><div class="inline-font-preview"><span class="preview-label">見本</span><span id="aInlineFontPreview" class="preview-text">あいうえお　漢字　ABC 123</span></div></div>
+            <div class="field"><label>文字の太さ</label><select id="aWeight"><option value="300">細字</option><option value="400" selected>標準</option><option value="500">中太</option><option value="700">太字</option></select></div>
+            <div class="field"><label>文字サイズ：<span id="aSizeValue">400 px</span></label><input id="aSize" type="range" min="32" max="500" step="2" value="400" aria-label="答えの文字サイズ（32〜500 px）"></div>
+            <div class="field"><label>文字色</label><input id="aText" type="color" value="#2f5ee5"></div><div class="field"><label>背景色</label><input id="aBg" type="color" value="#f2f2f2"></div>
+            <div class="field"><label>改行</label><select id="aWrapMode"><option value="wrap">自動（長いとき折り返す）</option><option value="shrink" selected>改行しない（はみ出すと自動縮小）</option><option value="manual">任意（\n の位置だけ）</option></select></div>
+          </div></div>
+        </div>
+        <aside class="settings-preview">
+          <div class="settings-preview-title">プレビュー</div>
+          <div class="settings-preview-frame a2-settings-preview-frame">
+            <div id="previewQuestion" class="preview-half"><div id="previewQuestionInner" class="preview-inner">問題</div></div>
+            <div id="previewAnswer" class="preview-half"><div id="previewAnswerInner" class="preview-inner">答え</div></div>
+          </div>
+          <div class="preview-click-hint">問題／答えをクリックすると、対応する設定へ移動します。</div>
+          <div id="previewOverflowWarning" class="preview-overflow-warning">注意：この文字サイズでは、実際の表示で文字が枠からはみ出す可能性があります。</div>
+        </aside>
+      </div>
+    </details>
+      <details id="importDetails" class="menu-details">
+      <summary><span class="menu-title">カードセットを読み込む／保存する</span></summary>
+      <div class="dataset-actions" style="margin-top:10px">
+        <button id="saveJsonBtn">データセットを保存（JSON）</button>
+        <label><button id="loadJsonProxy" type="button">データセットを読み込む（JSON）</button><input id="loadJsonInput" type="file" accept=".json" hidden></label>
+        <button id="saveCsvBtn">現在のセットをCSV保存</button>
+      </div>
+      <div class="import-grid">
+        <div>
+          <div class="subhead">CSV / TSV / TXT</div>
+          <input id="tableFile" type="file" multiple accept=".csv,.tsv,.txt,image/*">
+          <div class="small">
+            <strong>自作セットは、基本的に「問題」と「答え」の2列だけで使えます。列を増やすと、どの列を問題・答えにするか自由に選べます。</strong><br>
+            1行目のタイトルは自由です。例：<code>ます形,て形,辞書形</code><br>
+            正解の許容形を細かく指定したい場合は、任意で <code>correct</code> と <code>acceptedVariants</code> 列を追加できます。画像を使う助数詞セットでは、表ファイルと画像ファイルを同時選択してください。
+          </div>
+        </div>
+        <div>
+          <div class="subhead">直接入力／コピペ</div>
+          <textarea id="pasteArea" rows="7" placeholder="ます形,て形,辞書形&#10;かきます,かいて,かく&#10;のみます,のんで,のむ"></textarea>
+          <div class="dataset-actions" style="margin-top:8px">
+            <button id="pasteLoadBtn">この内容を読み込む</button>
+            <button id="restorePresetBtn">内蔵プリセットに戻す</button>
+          </div>
+        </div>
+      </div>
+      <div id="importStatus" class="status">未読み込み</div>
+      <ul id="validationList" class="validation-list"></ul>
+    </details>
+    </div>
+  </section>
+
+  <section id="presetPanel" class="panel">
+    <div class="dataset-box-title">教材・出題範囲</div>
+    <div class="small">練習する教材と範囲を選ぶと、すぐに出題へ反映されます。</div>
+    <div class="a2-range-content">
+    <div class="preset-tabs" id="presetTabs">
+      <button data-preset="hiragana" class="active">ひらがな</button>
+      <button data-preset="katakana">カタカナ</button>
+      <button data-preset="romaji">ローマ字</button>
+      <button data-preset="counters">数え方</button>
+      <button data-preset="time">時間・暦</button>
+      <button data-preset="custom">自作セット</button>
+    </div>
+
+    <div id="kanaChooser">
+      <div class="subhead">基本かな <span class="small">対応する行を横に配置。複数選択可。</span></div>
+      <div id="basicRange" class="range-grid"></div>
+      <div class="quick-row" style="margin-top:8px">
+        <button data-bulk="seion">清音すべて</button>
+        <button data-bulk="daku">濁音すべて</button>
+        <button data-bulk="handaku">半濁音すべて</button>
+        <button data-bulk="basicAll">基本かなすべて</button>
+        <button data-bulk="clear">選択解除</button>
+      </div>
+
+      <details>
+        <summary>拗音</summary>
+        <div id="youonRange" class="youon-grid"></div>
+        <div class="quick-row" style="margin-top:8px">
+          <button data-bulk="youonAll">拗音すべて</button>
+          <button data-bulk="youonClear">拗音を解除</button>
+        </div>
+      </details>
+
+      <details>
+        <summary>特殊拍</summary>
+        <div id="specialMoraRange" class="range-row" style="margin-top:8px"></div>
+      </details>
+
+      <details id="katakanaSpecialDetails" class="hidden">
+        <summary>カタカナ特殊音</summary>
+        <div id="katakanaSpecialRange" class="range-row" style="margin-top:8px"></div>
+        <div class="quick-row" style="margin-top:8px">
+          <button data-bulk="specialAll">特殊音すべて</button>
+          <button data-bulk="specialClear">特殊音を解除</button>
+        </div>
+      </details>
+      <div class="status" id="selectionStatus">選択中：0枚</div>
+    </div>
+
+    <div id="counterChooser" class="hidden">
+      <div class="subhead">基本</div>
+      <div class="counter-grid" id="counterBasic"></div>
+      <div class="subhead">追加</div>
+      <div class="counter-grid" id="counterExtra"></div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:10px">
+        <input type="checkbox" id="includeQuestionCard" checked style="width:auto"> 疑問形「何〜」を含める
+      </label>
+      <div class="status" id="counterStatus">選択中：0枚</div>
+      <div class="preview-note" style="margin-top:8px">代表物は初級日本語教材で扱いやすく、形と助数詞の対応が直感的なものを優先しています。</div>
+    </div>
+
+    <div id="timeChooser" class="hidden">
+      <div class="subhead">時間・暦</div>
+      <div class="counter-grid" id="timeCategories">
+        <button class="counter-btn selected" data-timecat="hour">時</button>
+        <button class="counter-btn selected" data-timecat="duration">時間</button>
+        <button class="counter-btn selected" data-timecat="minute">分</button>
+        <button class="counter-btn selected" data-timecat="date">日にち</button>
+        <button class="counter-btn selected" data-timecat="month">月</button>
+      </div>
+      <div class="status" id="timeStatus">選択中</div>
+    </div>
+
+    <div class="hidden" aria-hidden="true"><button id="orderedBtn">順番</button><button id="shuffleBtn">シャッフル</button></div>
+    
+      <div id="runtimeStatus" class="status hidden"></div>
+    </div>
+    <div class="group-row" style="margin-top:12px">
+      <span id="setStatus" class="status-pill">内蔵プリセット</span>
+    </div>
+  </section>
+
+  <section id="teacherPanel" class="panel stage">
+    <div class="teacher-toolbar"><button id="fullscreenBtn">全画面表示</button></div>
+    <div id="teacherDisplay" class="teacher-display"></div>
+  </section>
+
+  <div id="teacherNav">
+    <div class="nav">
+      <button id="prevBtn">← 前へ</button>
+      <button id="nextBtn" class="primary">次へ →</button>
+      <span aria-hidden="true"></span>
+      <button id="orderedBtnStage" hidden aria-hidden="true">順番</button>
+      <button id="shuffleBtnStage" hidden aria-hidden="true">シャッフル</button>
+    </div>
+    <div id="teacherProgress" class="progress"></div>
+  </div>
+
+  
+
+  
+
+  <section id="learnerControls" class="panel hidden">
+    <div class="learner-heading">Practice Settings</div>
+    <div class="controls">
+      <div class="field"><label>Question</label><select id="learnerQuestionTypeSelect"></select></div>
+      <div class="field"><label>Answer</label><select id="learnerAnswerTypeSelect"></select></div>
+      <div class="field"><label>Display</label><select id="learnerScript"><option value="standard">Standard</option></select></div>
+      <div class="field"><label>Order</label><select id="learnerOrderSelect"><option value="shuffle">Shuffle</option><option value="ordered">Original order</option></select></div>
+    </div>
+    <div class="group-row" style="margin-top:12px">
+      <button id="learnerStartBtn" class="primary" type="button">Start Practice</button>
+      <span id="learnerDirectionNote" class="small"></span>
+    </div>
+  </section>
+
+  <section id="learnerArea" class="panel hidden">
+    <div class="learner-shell">
+      <div id="learnerStage" class="learner-stage answer-hidden"></div>
+      <div id="learnerPrompt" class="small" style="font-size:14px;margin-top:8px">Type the target form.</div>
+      <div class="learner-controls">
+        <div class="learner-control-box">
+          <input id="learnerInput" class="learner-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer">
+          <button id="checkBtn" class="primary">Check</button>
+          <button id="showAnswerBtn">Show Answer</button>
+          <button id="learnerNextBtn">Next</button>
+          <div id="feedback" class="feedback" aria-live="polite">Enter your answer and press Check.</div>
+        </div>
+      </div>
+      <div class="progress" id="learnerProgress"></div>
+    </div>
+  </section>
+</div>
+
+
+<script src="app-1.js"></script>
+<script src="app-2.js"></script>
+<script src="app-3.js"></script>
+
+<footer class="copyright-footer">© 2026 Tetsuya Esaki / esaKITs — Enhanced Smart AI Kits <span aria-hidden="true"> · </span><span>Apache License 2.0</span></footer>
+</body>
+</html>
