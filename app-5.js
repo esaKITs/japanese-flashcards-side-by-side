@@ -1,5 +1,6 @@
 /* ---------- navigation/order ---------- */
-function go(delta){if(!cards.length)return;index=(index+delta+cards.length)%cards.length;learnerJudged=false;teacherAnswerVisible=false;$("#learnerInput").value="";$("#feedback").textContent="Enter your answer and press Check.";$("#feedback").className="feedback";renderAll()}
+function reshuffleForNextCycle(){if(!shuffle||order.length<2)return;const previous=order.slice(),previousLast=previous[previous.length-1];let candidate;for(let attempt=0;attempt<40;attempt++){candidate=cards.map((_,i)=>i);shuffleArray(candidate);const same=candidate.every((v,i)=>v===previous[i]);const repeatsBoundary=candidate.length>2&&candidate[0]===previousLast;if(!same&&!repeatsBoundary)break}if(candidate.every((v,i)=>v===previous[i])){candidate=previous.slice(1).concat(previous[0])}order=candidate}
+function go(delta){if(!cards.length)return;if(delta>0&&index===cards.length-1){reshuffleForNextCycle();index=0}else if(delta<0&&index===0){index=cards.length-1}else{index+=delta}learnerJudged=false;teacherAnswerVisible=false;$("#learnerInput").value="";$("#feedback").textContent="Enter your answer and press Check.";$("#feedback").className="feedback";renderAll()}
 function teacherNext(){if(!cards.length)return;if(!teacherAnswerVisible){teacherAnswerVisible=true;renderTeacher();return}go(1)}
 function teacherPrev(){if(!cards.length)return;go(-1)}
 $("#prevBtn").onclick=teacherPrev;$("#nextBtn").onclick=teacherNext;$("#learnerNextBtn").onclick=()=>go(1);
