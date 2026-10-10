@@ -16,7 +16,18 @@ let customCards=[];let customTable=null;let customSourceHeader=null,customTarget
 /* ---------- range UI ---------- */
 function makeRangeButton(id,label,parent,cls=""){const b=document.createElement("button");b.className="range-btn "+cls;b.dataset.group=id;b.textContent=label;b.onclick=()=>{const set=id.startsWith("ks:")?selectedSpecial:selectedGroups;set.has(id)?set.delete(id):set.add(id);syncRangeButtons();updateSelectionStatus();if(preset==="hiragana"||preset==="katakana"||preset==="romaji")resetOrder()};parent.appendChild(b)}
 function initRanges(){const basic=$("#basicRange");const pairedRows=[["a",null,null],["ka","ga",null],["sa","za",null],["ta","da",null],["na",null,null],["ha","ba","pa"],["ma",null,null],["ya",null,null],["ra",null,null],["wa",null,null]];pairedRows.forEach(row=>{const family=document.createElement("div");family.className="range-family";row.filter(Boolean).forEach(id=>makeRangeButton(id,groupLabels[id],family,(daku.includes(id)||handaku.includes(id))?"compact":""));basic.appendChild(family)});const youonRows=[["kya","gya",null],["sha","ja",null],["cha",null,null],["nya",null,null],["hya","bya","pya"],["mya",null,null],["rya",null,null]];const youonBox=$("#youonRange");youonRows.forEach(row=>{const family=document.createElement("div");family.className="range-family";row.filter(Boolean).forEach(id=>makeRangeButton(id,groupLabels[id],family,(id==="gya"||id==="ja"||id==="bya"||id==="pya")?"compact":""));youonBox.appendChild(family)});specialMora.forEach(id=>makeRangeButton(id,groupLabels[id],$("#specialMoraRange")));kataSpecial.forEach(([k,r],i)=>makeRangeButton("ks:"+i,k,$("#katakanaSpecialRange"),"compact"));Object.entries(counterDefs).forEach(([id,d])=>{const b=document.createElement("button");b.className="counter-btn";b.dataset.counter=id;b.textContent=d.label;b.onclick=()=>{const next=new Set(selectedCounters);next.has(id)?next.delete(id):next.add(id);if(preset==="counters"){const test=validateCardSet(counterCards([...next],$("#includeQuestionCard").checked),{checkQuestionCollisions:true});if(test.errors.length){const first=test.errors[0].message;const suffix=test.errors.length>1?`（同様の競合 ${test.errors.length}件）`:"";setRuntimeStatus([first+suffix],"error");return}}selectedCounters=next;syncCounterButtons();updateCounterStatus();if(preset==="counters")resetOrder()};(d.kind==="basic"?$("#counterBasic"):$("#counterExtra")).appendChild(b)});syncRangeButtons();syncCounterButtons();updateSelectionStatus();updateCounterStatus()}
-function syncRangeButtons(){$(".range-btn[data-group]").forEach(b=>{const set=b.dataset.group.startsWith("ks:")?selectedSpecial:selectedGroups;b.classList.toggle("selected",set.has(b.dataset.group));if(!b.dataset.group.startsWith("ks:"))b.textContent=preset==="katakana"?hiraToKata(groupLabels[b.dataset.group]):groupLabels[b.dataset.group]})}
+function syncRangeButtons(){
+  $$(".range-btn[data-group]").forEach(b=>{
+    const id=b.dataset.group;
+    const set=id.startsWith("ks:")?selectedSpecial:selectedGroups;
+    b.classList.toggle("selected",set.has(id));
+    if(id.startsWith("ks:"))return;
+    const label=groupLabels[id];
+    if(preset==="katakana")b.textContent=hiraToKata(label);
+    else if(preset==="romaji")b.textContent=(id==="N"?"n, m (/N/)":id==="Q"?"っ /Q/":id+"行");
+    else b.textContent=label;
+  });
+}
 function syncCounterButtons(){$$(".counter-btn").forEach(b=>b.classList.toggle("selected",selectedCounters.has(b.dataset.counter)))}
 function updateSelectionStatus(){const n=buildKanaCards(false).length;$("#selectionStatus").textContent=`選択中：${n}枚`}
 function updateCounterStatus(){const n=counterCards([...selectedCounters],$("#includeQuestionCard").checked).length;$("#counterStatus").textContent=`選択中：${n}枚`}
